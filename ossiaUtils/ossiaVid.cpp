@@ -232,11 +232,6 @@ void ossiaCv::cvSetup(const unsigned int* wAndH, ofParameterGroup& group)
         blobs.add(area[i].set("size_" + to_string(i+1), 0));
     }
 
-    cvControl.add(blobs);
-
-    colorImg.allocate(wAndH[0], wAndH[1]);
-    grayImage.allocate(wAndH[0], wAndH[1]);
-
 #ifdef NET
     clintListn = socket(AF_INET, SOCK_STREAM, 0); // creating socket
     memset(&ipOfServer, '0', sizeof(ipOfServer));
@@ -247,8 +242,17 @@ void ossiaCv::cvSetup(const unsigned int* wAndH, ofParameterGroup& group)
     bind(clintListn, (struct sockaddr*)&ipOfServer, sizeof(ipOfServer));
     listen(clintListn, 20);
     clintConnt = accept(clintListn, (struct sockaddr*)NULL, NULL);
-    cvControl.add(drawNetMesh.set("draw_mesh", false));
+
+    NetMesh.setName("net_mesh");
+    NetMesh.add(drawNetMesh.set("draw", false));
+    NetMesh.add(pointSize.set("point_size", 3, 1, 100));
+    blobs.add(NetMesh);
 #endif
+
+    cvControl.add(blobs);
+
+    colorImg.allocate(wAndH[0], wAndH[1]);
+    grayImage.allocate(wAndH[0], wAndH[1]);
 
     group.add(cvControl);
 }
@@ -268,12 +272,12 @@ void ossiaCv::cvUpdate(ofPixels& pixels, const unsigned int* wAndH, const unsign
 
     if (getContours)
     {
-        contourFinder.findContours(grayImage, minArea, maxArea, 5, false);
+        contourFinder.findContours(grayImage, minArea, maxArea, 5, true);
 
         int i{0};
 
 #ifdef NET
-        writeBlobs(clintConnt, contourFinder);
+        writeBlobs(clintConnt, contourFinder, wAndH);
         if (recv(clintConnt, &dataSending, 0, MSG_DONTWAIT) == 0)
             meshToDraw = readBlobs(clintConnt, wAndH);
 #endif
@@ -308,16 +312,14 @@ void ossiaCv::writeFloat(int fd, float x)
     write(fd, (char *) &x, 4);
 }
 
-int writeN = 0;
-
-void ossiaCv::writeContour(int fd, ofxCvBlob blob)
+void ossiaCv::writeContour(int fd, ofxCvBlob blob, const unsigned int* wh)
 {
     writeInt(fd, blob.nPts);
 
     for (const glm::vec3& p : blob.pts)
     {
-        float x = (p.x / (ofGetWidth() * 0.5)) -1;
-        float y = (p.y / (ofGetHeight() * 0.5)) -1;
+        float x = (p.x / wh[0]) -1;
+        float y = (p.y / wh[1]) -1;
 
         writeFloat(fd, x);
         writeFloat(fd, y);
@@ -326,13 +328,13 @@ void ossiaCv::writeContour(int fd, ofxCvBlob blob)
     writeInt(fd, 0);
 }
 
-void ossiaCv::writeBlobs(int fd, ofxCvContourFinder &cntr)
+void ossiaCv::writeBlobs(int fd, ofxCvContourFinder &cntr, const unsigned int* wh)
 {
     writeInt(fd, cntr.nBlobs);
 
     for (const ofxCvBlob& b : cntr.blobs)
     {
-        writeContour(fd, b);
+        writeContour(fd, b, wh);
     }
 }
 
@@ -378,8 +380,6 @@ vector<ofPoint> ossiaCv::readContour(int fd, const unsigned int* wh)
     vector<ofPoint> p;
     int n{readInt(fd)};
 
-    //cout << "contour " << n << '\n';
-
     for (int i = 0; i < n; i++)
     {
         float x = readFloat(fd);
@@ -399,9 +399,6 @@ ofMesh ossiaCv::readBlobs(int fd, const unsigned int* wh)
 
     int n{readInt(fd)};
 
-    unsigned int halfW = wh[0] / 2;
-    unsigned int halfH = wh[1] / 2;
-
     for (int i = 0; i < n; i++)
     {
         vector<ofPoint> vert{readContour(fd, wh)};
@@ -409,9 +406,8 @@ ofMesh ossiaCv::readBlobs(int fd, const unsigned int* wh)
         for (const ofPoint p : vert)
         {
             ofPoint pn = (p + 1);
-            pn.x = pn.x * wh[0] + halfW;
-            pn.y = pn.y * wh[1] + halfH;
-            //cout << pn.x << '\n';
+            pn.x = pn.x * wh[0];
+            pn.y = pn.y * wh[1];
             m.addVertex(pn);
             m.addColor(ofColor(255, 255, 255, 255));
         }
@@ -427,7 +423,7 @@ void ossiaCv::setBackGround(bool& hold)
     else grayBg.clear();
 }
 
-void ossiaCv::cvdraw(const ossiaVid::canvas& cnv)
+void ossiaCv::cvdraw(const ossiaVid::canvas& cnv, const float s)
 {
     if (drawCvImage)
         grayImage.draw(cnv.x,
@@ -441,18 +437,18 @@ void ossiaCv::cvdraw(const ossiaVid::canvas& cnv)
                        cnv.w,
                        cnv.h);
 
+#ifdef NET
     if (drawNetMesh)
     {
-        glPointSize(3);
+        glPointSize(pointSize);
         ofPushMatrix();
-        // the projected points are 'upside down' and 'backwards'
-        //ofScale(1, -1, -1);
-        //ofTranslate(0, 0, -1000); // center the points a bit
-        //ofEnableDepthTest();
+        ofTranslate(cnv.x, cnv.y, 0); // center the points a bit
+        ofScale(s);
         meshToDraw.drawVertices();
-        //ofDisableDepthTest();
         ofPopMatrix();
     }
+#endif
+
 }
 #endif
 
@@ -539,7 +535,7 @@ void ossiaPlayer::setVolume(float &toAmp)
 
 void ossiaPlayer::draw()
 {
-    if (drawVid || getPixels) checkResize();
+    checkResize();
 
     if (drawVid)
     {
@@ -623,10 +619,10 @@ void ossiaGrabber::update()
 void ossiaGrabber::draw()
 {
 #ifdef CV
-    cvdraw(canv);
+    cvdraw(canv, size);
 #endif
 
-    if (drawVid || getPixels) checkResize();
+    checkResize();
 
     if (drawVid)
     {
@@ -729,10 +725,10 @@ void ossiaKinect::update()
 void ossiaKinect::draw()
 {
 #ifdef CV
-    cvdraw(canv);
+    cvdraw(canv, size);
 #endif
 
-    if (drawVid || getPixels) checkResize();
+    checkResize();
 
     if (drawVid)
     {

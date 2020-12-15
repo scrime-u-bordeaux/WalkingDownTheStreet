@@ -12,14 +12,11 @@
 #ifdef CV
 #include "ofxOpenCv.h"
 #ifdef NET
-//#include "ofxNetwork.h"
-
 #include <unistd.h> //contains various constants
 #include <sys/types.h> //contains a number of basic derived types that should be used whenever appropriate
 #include <arpa/inet.h> // defines in_addr structure
 #include <sys/socket.h> // for socket creation
 #include <netinet/in.h> //contains constants and structures needed for internet domain addresses
-
 #endif
 #endif
 
@@ -128,8 +125,8 @@ protected:
 
     void writeInt(int fd, int x);
     void writeFloat(int fd, float x);
-    void writeContour(int fd, ofxCvBlob blob);
-    void writeBlobs(int fd, ofxCvContourFinder &cntr);
+    void writeContour(int fd, ofxCvBlob blob,const unsigned int* wh);
+    void writeBlobs(int fd, ofxCvContourFinder &cntr, const unsigned int* wh);
 
     int readInt(int fd);
     float readFloat(int fd);
@@ -137,12 +134,14 @@ protected:
     ofMesh readBlobs(int fd, const unsigned int* wh);
 
     ofMesh meshToDraw;
+    ofParameterGroup NetMesh;
     ofParameter<bool> drawNetMesh;
+    ofParameter<float> pointSize;
 #endif
 
     void cvSetup(const unsigned int* wAndH, ofParameterGroup& group);
     void cvUpdate(ofPixels& pixels, const unsigned int* wAndH, const unsigned int& wArea);
-    void cvdraw(const ossiaVid::canvas& cnv);
+    void cvdraw(const ossiaVid::canvas& cnv, const float s);
 };
 #endif
 

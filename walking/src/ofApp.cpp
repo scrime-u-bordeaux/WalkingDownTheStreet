@@ -8,25 +8,29 @@ void ofApp::setup(){
                    ofVec4f(0, 0, 0, 0),
                    ofVec4f(255, 255, 255, 255)));
 
-    //kinect.setup(); // default to "RGB" instead of infrared
-    camera.setup(1);
+    video.setup();
+    //camera.setup(1);
+    kinect.setup(); // default to "RGB" instead of infrared
 
-    //parameters.add(kinect.parameters);
-    parameters.add(camera.parameters);
+    parameters.add(video.parameters);
+    //parameters.add(camera.parameters);
+    parameters.add(kinect.parameters);
 
     oscQuery.setup(parameters, 1234, 5678, "ossiaKinects");
 
     oscQuery[backGround].setClipMode("both").setUnit("color.argb8");
 
-    //kinect.setAtributes(oscQuery);
-    camera.setAtributes(oscQuery);
+    video.setAtributes(oscQuery);
+    //camera.setAtributes(oscQuery);
+    kinect.setAtributes(oscQuery);
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
 
-    //kinect.update();
-    camera.update();
+    video.update();
+    //camera.update();
+    kinect.update();
 }
 
 //--------------------------------------------------------------
@@ -37,19 +41,20 @@ void ofApp::draw(){
                  backGround->w,
                  backGround->x);
 
-    //kinect.draw();
-    camera.draw();
+    video.draw();
+    //camera.draw();
+    kinect.draw();
 }
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h){
 
-    //kinect.resize();
-    camera.resize();
+    kinect.resize();
+    //camera.resize();
 }
 
 void ofApp::exit(){
 
-    //kinect.close();
-    camera.close();
+    kinect.close();
+    //camera.close();
 }

@@ -14,7 +14,9 @@ public:
     void windowResized(int w, int h);
 
     ofParameterGroup parameters;
-    ossiaUtils::grabbers camera;
+    ossiaUtils::players video;
+    //ossiaUtils::grabbers camera;
+    ossiaUtils::kinects kinect;
     ofParameter<ofVec4f> backGround;
 
     ofxOscQueryServer oscQuery;

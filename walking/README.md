@@ -24,7 +24,12 @@ To then open this exemple in qtcreator, click "new project" and choose the "Impo
             "ofxOpenCv"
         ]
 
-        cpp.defines: ["OSCQUERY", "KINECT", "CV"]
+        cpp.defines: [
+            "OSCQUERY", 
+            "KINECT", 
+            "CV", 
+            "NET"
+        ]
 ```
 
 The program should then be able to be compiled
