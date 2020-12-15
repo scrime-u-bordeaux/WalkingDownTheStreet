@@ -34,6 +34,7 @@ public:
     void corner2center(const unsigned int* wAndH, const float& reSize, const ofVec3f& center);
     float x, y, z;
     unsigned int h, w;
+    ofVec2f middle;
     };
 
 protected:
@@ -119,7 +120,8 @@ protected:
     ofParameter<float> area[5];
 
 #ifdef NET
-    char dataSending[4]; // Actually this is called packet in Network Communication, which contain data and send through.
+    char dataSending[4];
+    // Actually this is called packet in Network Communication, which contain data and send through.
     int clintListn = 0, clintConnt = 0;
     struct sockaddr_in ipOfServer;
 
@@ -214,8 +216,15 @@ private:
     int device;
 
     ofParameter<bool> freeze;
+
     ofParameter<float> angle;
     void tilt(float &angle);
+
+    ofMesh mesh;
+    ofParameterGroup depthMesh;
+    ofParameter<bool> drawMesh;
+    ofParameter<float> vSize;
+    ofMesh getMesh();
 };
 #endif
 

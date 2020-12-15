@@ -9,11 +9,10 @@ void ossiaVid::canvas::corner2center(const unsigned int* wAndH, const float& reS
     float wOfset{width / 2};
     float hOfset{height / 2};
 
-    int ofHalfW{ofGetWidth() / 2};
-    int ofHalfH{ofGetHeight() / 2};
+    middle.set(ofGetWidth()/2, ofGetHeight()/2);
 
-    float xOfset{ofHalfW + (ofHalfW * center[0])};
-    float yOfset{ofHalfH + (ofHalfH * center[1])};
+    float xOfset{middle.x + (middle.x * center[0])};
+    float yOfset{middle.y + (middle.y * center[1])};
 
     x = xOfset - wOfset;
     y = yOfset - hOfset;
@@ -691,6 +690,11 @@ void ossiaKinect::setup(bool infrared)
 
     setMatrix(params);
 
+    depthMesh.setName("depth_mesh");
+    depthMesh.add(drawMesh.set("draw", false));
+    //depthMesh.add(drawMesh.set("draw", false));
+    params.add(depthMesh);
+
     canv.corner2center(vidWandH, size, placement);
 
     // print the intrinsic IR sensor values
@@ -707,19 +711,43 @@ void ossiaKinect::tilt(float &angle)
     vid.setCameraTiltAngle(angle);
 }
 
+ofMesh ossiaKinect::getMesh()
+{
+    ofMesh m;
+    m.setMode(OF_PRIMITIVE_POINTS);
+
+    int step = 2;
+
+    for(unsigned int y = 0; y < vidWandH[1]; y += step) {
+      for(unsigned int x = 0; x < vidWandH[0]; x += step) {
+        if(vid.getDistanceAt(x, y) > 0) {
+          m.addColor(vid.getColorAt(x,y));
+          m.addVertex(vid.getWorldCoordinateAt(x, y));
+        }
+      }
+    }
+
+    return m;
+}
+
 void ossiaKinect::update()
 {
     if (!freeze) vid.update();
-    if (getPixels) processPix(vid.getPixels(), pixVal
-                          #ifdef CV
-                          , grayImage.getPixels()
-                          #endif
-                              );
+
+    if (vid.isFrameNew())
+    {
+      if (getPixels) processPix(vid.getPixels(), pixVal
+                            #ifdef CV
+                            , grayImage.getPixels()
+                            #endif
+                                );
 
 #ifdef CV
-    if (vid.isFrameNew()) cvUpdate(vid.getDepthPixels(), halfWandH, vidArea);
+      cvUpdate(vid.getDepthPixels(), halfWandH, vidArea);
 #endif
 
+      if (drawMesh) mesh = getMesh();
+    }
 }
 
 void ossiaKinect::draw()
@@ -742,6 +770,16 @@ void ossiaKinect::draw()
                 canv.z,
                 canv.w,
                 canv.h);
+    }
+
+    if (drawMesh)
+    {
+      glPointSize(3);
+      ofPushMatrix();
+      ofScale(1, 1, -1);
+      ofTranslate(canv.middle.x, canv.middle.y, -1000); // center the points a bit
+      mesh.drawVertices();
+      ofPopMatrix();
     }
 
     ofSetCircleResolution(circleResolution);
