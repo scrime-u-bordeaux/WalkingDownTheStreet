@@ -692,7 +692,15 @@ void ossiaKinect::setup(bool infrared)
 
     depthMesh.setName("depth_mesh");
     depthMesh.add(drawMesh.set("draw", false));
-    //depthMesh.add(drawMesh.set("draw", false));
+    depthMesh.add(mThreshold.set("threshold", 2048));
+    depthMesh.add(mColor.set("color",
+                                   ofVec4f(255, 255, 255, 255),
+                                   ofVec4f(0, 0, 0, 0),
+                                   ofVec4f(255, 255, 255, 255)));
+    depthMesh.add(vSize.set("point_size", 3, 1, 100));
+    depthMesh.add(yRotate.set("rotate_y", 0, -180, 180));
+    depthMesh.add(xRotate.set("rotate_x", 0,-180, 180));
+    depthMesh.add(mPosition.set("position", ofVec3f(0, 0, 1)));
     params.add(depthMesh);
 
     canv.corner2center(vidWandH, size, placement);
@@ -718,10 +726,19 @@ ofMesh ossiaKinect::getMesh()
 
     int step = 2;
 
-    for(unsigned int y = 0; y < vidWandH[1]; y += step) {
-      for(unsigned int x = 0; x < vidWandH[0]; x += step) {
-        if(vid.getDistanceAt(x, y) > 0) {
-          m.addColor(vid.getColorAt(x,y));
+    for(unsigned int y = 0; y < vidWandH[1]; y += step)
+    {
+      for(unsigned int x = 0; x < vidWandH[0]; x += step)
+      {
+        float dist{vid.getDistanceAt(x, y)};
+
+        if((dist > 0) && (dist < mThreshold))
+        {
+          m.addColor(ofColor(mColor->y,
+                             mColor->z,
+                             mColor->w,
+                             mColor->x));
+
           m.addVertex(vid.getWorldCoordinateAt(x, y));
         }
       }
@@ -774,10 +791,14 @@ void ossiaKinect::draw()
 
     if (drawMesh)
     {
-      glPointSize(3);
+      glPointSize(vSize);
       ofPushMatrix();
       ofScale(1, 1, -1);
-      ofTranslate(canv.middle.x, canv.middle.y, -1000); // center the points a bit
+      ofTranslate(canv.middle.x * (mPosition->x + 1),
+                  canv.middle.y * (mPosition->y + 1),
+                  1000 * (mPosition->z - 2));
+      ofRotateYDeg(yRotate);
+      ofRotateXDeg(xRotate);
       mesh.drawVertices();
       ofPopMatrix();
     }

@@ -223,7 +223,9 @@ private:
     ofMesh mesh;
     ofParameterGroup depthMesh;
     ofParameter<bool> drawMesh;
-    ofParameter<float> vSize;
+    ofParameter<ofVec4f> mColor;
+    ofParameter<float> mThreshold, vSize, yRotate, xRotate;
+    ofParameter<ofVec3f> mPosition;
     ofMesh getMesh();
 };
 #endif
