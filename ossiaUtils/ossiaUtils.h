@@ -72,7 +72,6 @@ public:
     void close();
     ofParameterGroup parameters;
 
-private:
     vector<ossiaKinect*> vids;
 };
 #endif

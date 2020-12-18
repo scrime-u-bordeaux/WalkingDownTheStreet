@@ -11,13 +11,6 @@
 
 #ifdef CV
 #include "ofxOpenCv.h"
-#ifdef NET
-#include <unistd.h> //contains various constants
-#include <sys/types.h> //contains a number of basic derived types that should be used whenever appropriate
-#include <arpa/inet.h> // defines in_addr structure
-#include <sys/socket.h> // for socket creation
-#include <netinet/in.h> //contains constants and structures needed for internet domain addresses
-#endif
 #endif
 
 //--------------------------------------------------------------
@@ -37,18 +30,18 @@ public:
     ofVec2f middle;
     };
 
+    unsigned int vidWandH[2];
+    canvas canv;
+    ofParameter<float> size;
+
 protected:
     float prevSize;
     ofVec3f prevPlace;
     ofParameter<ofVec3f> placement;
-    ofParameter<float> size;
-    unsigned int vidWandH[2];
 
 #ifdef CV // only needed for cvUpdate
     unsigned int vidArea;
 #endif
-
-    canvas canv;
 
     ofParameter<ofVec4f> color;
 
@@ -94,6 +87,10 @@ protected:
 #ifdef CV
 class ossiaCv
 {
+public:
+    ofxCvContourFinder contourFinder;
+    ofParameter<bool> getContours;
+
 protected:
     ofParameterGroup cvControl;
 
@@ -108,38 +105,13 @@ protected:
 
     ofParameter<bool> drawCvImage;
 
-    ofxCvContourFinder contourFinder;
-
     ofParameterGroup blobs;
-    ofParameter<bool> getContours;
     ofParameter<int> minArea;
     ofParameter<int> maxArea;
     ofParameter<bool> drawContours;
     // blob position and size
     ofParameter<ofVec3f> position[5];
     ofParameter<float> area[5];
-
-#ifdef NET
-    char dataSending[4];
-    // Actually this is called packet in Network Communication, which contain data and send through.
-    int clintListn = 0, clintConnt = 0;
-    struct sockaddr_in ipOfServer;
-
-    void writeInt(int fd, int x);
-    void writeFloat(int fd, float x);
-    void writeContour(int fd, ofxCvBlob blob,const unsigned int* wh);
-    void writeBlobs(int fd, ofxCvContourFinder &cntr, const unsigned int* wh);
-
-    int readInt(int fd);
-    float readFloat(int fd);
-    vector<ofPoint> readContour(int fd, const unsigned int* wh);
-    ofMesh readBlobs(int fd, const unsigned int* wh);
-
-    ofMesh meshToDraw;
-    ofParameterGroup NetMesh;
-    ofParameter<bool> drawNetMesh;
-    ofParameter<float> pointSize;
-#endif
 
     void cvSetup(const unsigned int* wAndH, ofParameterGroup& group);
     void cvUpdate(ofPixels& pixels, const unsigned int* wAndH, const unsigned int& wArea);
@@ -201,7 +173,7 @@ private:
 #ifdef KINECT
 class ossiaKinect: public ossiaVid
         #ifdef CV
-        , protected ossiaCv
+        , public ossiaCv
         #endif
 {
 public:
