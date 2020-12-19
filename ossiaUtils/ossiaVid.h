@@ -46,6 +46,8 @@ protected:
     ofParameter<ofVec4f> color;
 
     ofParameter<bool> drawVid;
+    ofParameter<bool> flipVid;
+    ofTexture videoTexture;
 
     // Pixel process;
     size_t widthSpread;
@@ -115,7 +117,7 @@ protected:
 
     void cvSetup(const unsigned int* wAndH, ofParameterGroup& group);
     void cvUpdate(ofPixels& pixels, const unsigned int* wAndH, const unsigned int& wArea);
-    void cvdraw(const ossiaVid::canvas& cnv, const float s);
+    void cvdraw(const ossiaVid::canvas& cnv);
 };
 #endif
 

@@ -33,7 +33,7 @@ void players::setAtributes(ofxOscQueryServer& device)
 {
     for (ossiaPlayer* vid : vids)
     {
-        int index{4};
+        int index{5};
 
         setBaseAtributes(device, vid->params); // get the matrix parameter group
         // play
@@ -142,7 +142,7 @@ void grabbers::setAtributes(ofxOscQueryServer& device)
 {
     for (ossiaGrabber* vid : vids)
     {
-        int index{4};
+        int index{5};
 
         setBaseAtributes(device, vid->params);
         // play
@@ -226,7 +226,7 @@ void kinects::setAtributes(ofxOscQueryServer& device)
 {
     for (ossiaKinect* vid : vids)
     {
-        int index{4};
+        int index{5};
 
         setBaseAtributes(device, vid->params); // get the matrix parameter group
         // play
@@ -275,6 +275,8 @@ void setBaseAtributes(ofxOscQueryServer& device, ofParameterGroup& params) // us
 
     // draw_video
     device[params[index]].setCritical(true).setDescription("display the video");
+    // flip_video
+    device[params[++index]].setCritical(true).setDescription("fliped drawn video verticaly");
     // size
     device[params[++index]].setDescription("set the display scale factor, 1 is the original size");
     // placement

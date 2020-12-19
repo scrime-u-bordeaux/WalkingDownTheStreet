@@ -9,12 +9,12 @@ void ofApp::setup(){
                    ofVec4f(255, 255, 255, 255)));
 
     //video.setup();
-    //camera.setup(1);
-    kinect.setup(); // default to "RGB" instead of infrared
+    camera.setup(1);
+    //kinect.setup(); // default to "RGB" instead of infrared
 
     //parameters.add(video.parameters);
-    //parameters.add(camera.parameters);
-    parameters.add(kinect.parameters);
+    parameters.add(camera.parameters);
+    //parameters.add(kinect.parameters);
 
 #ifdef NET
     clintListn = socket(AF_INET, SOCK_STREAM, 0); // creating socket
@@ -38,8 +38,8 @@ void ofApp::setup(){
     oscQuery[backGround].setClipMode("both").setUnit("color.argb8");
 
     //video.setAtributes(oscQuery);
-    //camera.setAtributes(oscQuery);
-    kinect.setAtributes(oscQuery);
+    camera.setAtributes(oscQuery);
+    //kinect.setAtributes(oscQuery);
 }
 
 //--------------------------------------------------------------
@@ -170,8 +170,8 @@ ofMesh ofApp::readBlobs(int fd, const unsigned int* wh)
 void ofApp::update(){
 
     //video.update();
-    //camera.update();
-    kinect.update();
+    camera.update();
+    //kinect.update();
 
 #ifdef NET
     if (kinect.vids[0]->vid.isFrameNew() && kinect.vids[0]->getContours)
@@ -205,19 +205,19 @@ void ofApp::draw(){
 #endif
 
     //video.draw();
-    //camera.draw();
-    kinect.draw();
+    camera.draw();
+    //kinect.draw();
 }
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h){
 
-    kinect.resize();
-    //camera.resize();
+    //kinect.resize();
+    camera.resize();
 }
 
 void ofApp::exit(){
 
-    kinect.close();
-    //camera.close();
+    //kinect.close();
+    camera.close();
 }

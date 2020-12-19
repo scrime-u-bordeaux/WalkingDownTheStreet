@@ -23,8 +23,8 @@ public:
 
     ofParameterGroup parameters;
     //ossiaUtils::players video;
-    //ossiaUtils::grabbers camera;
-    ossiaUtils::kinects kinect;
+    ossiaUtils::grabbers camera;
+    //ossiaUtils::kinects kinect;
     ofParameter<ofVec4f> backGround;
 
     ofxOscQueryServer oscQuery;

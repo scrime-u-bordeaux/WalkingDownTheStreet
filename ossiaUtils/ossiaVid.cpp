@@ -26,6 +26,8 @@ ossiaVid::ossiaVid()
 {
     params.add(drawVid.set("draw_video", false));
 
+    params.add(flipVid.set("flip_video", false));
+
     params.add(size.set("size", 1., 0., 10.));
     prevSize = size;
 
@@ -210,7 +212,7 @@ void ossiaVid::drawPix(ofParameter<float>* pv)
 void ossiaCv::cvSetup(const unsigned int* wAndH, ofParameterGroup& group)
 {
     cvControl.setName("cv");
-    cvControl.add(maxThreshold.set("threshold", 64));
+    cvControl.add(maxThreshold.set("threshold", 64, 1, 255));
     cvControl.add(holdBackGround.set("hold_background", false));
     holdBackGround.addListener(this, &ossiaCv::setBackGround);
     cvControl.add(drawCvImage.set("draw_grayscale", false));
@@ -276,7 +278,7 @@ void ossiaCv::setBackGround(bool& hold)
     else grayBg.clear();
 }
 
-void ossiaCv::cvdraw(const ossiaVid::canvas& cnv, const float s)
+void ossiaCv::cvdraw(const ossiaVid::canvas& cnv)
 {
     if (drawCvImage)
         grayImage.draw(cnv.x,
@@ -384,7 +386,14 @@ void ossiaPlayer::draw()
                    color->w,
                    color->x);
 
-        vid.getTexture().draw(canv.x, // getTexture allows the use of the Z axis
+        if (flipVid)
+        {
+            ofPixels pix = vid.getPixels();
+            pix.mirror(true, false);
+            videoTexture.loadData(pix);
+        } else videoTexture = vid.getTexture();
+
+        videoTexture.draw(canv.x, // getTexture allows the use of the Z axis
                 canv.y,
                 canv.z,
                 canv.w,
@@ -432,6 +441,8 @@ void ossiaGrabber::setup(unsigned int width, unsigned int height)
     vidWandH[0] = vid.getWidth();
     vidWandH[1] = vid.getHeight();
 
+    videoTexture.allocate(vid.getPixels());
+
 #ifdef CV // only needed for cvUpdate
     vidArea = vidWandH[0] * vidWandH[1];
     cvSetup(vidWandH, params);
@@ -459,7 +470,7 @@ void ossiaGrabber::update()
 void ossiaGrabber::draw()
 {
 #ifdef CV
-    cvdraw(canv, size);
+    cvdraw(canv);
 #endif
 
     checkResize();
@@ -471,7 +482,14 @@ void ossiaGrabber::draw()
                    color->w,
                    color->x);
 
-        vid.getTexture().draw(canv.x, // getTexture allows the use of the Z axis
+        if (flipVid)
+        {
+            ofPixels pix = vid.getPixels();
+            pix.mirror(true, false);
+            videoTexture.loadData(pix);
+        } else videoTexture = vid.getTexture();
+
+        videoTexture.draw(canv.x, // getTexture allows the use of the Z axis
                 canv.y,
                 canv.z,
                 canv.w,
@@ -611,7 +629,7 @@ void ossiaKinect::update()
 void ossiaKinect::draw()
 {
 #ifdef CV
-    cvdraw(canv, size);
+    cvdraw(canv);
 #endif
 
     checkResize();
@@ -623,7 +641,14 @@ void ossiaKinect::draw()
                    color->w,
                    color->x);
 
-        vid.getTexture().draw(canv.x, // getTexture allows the use of the Z axis
+        if (flipVid)
+        {
+            ofPixels pix = vid.getPixels();
+            pix.mirror(true, false);
+            videoTexture.loadData(pix);
+        } else videoTexture = vid.getTexture();
+
+        videoTexture.draw(canv.x, // getTexture allows the use of the Z axis
                 canv.y,
                 canv.z,
                 canv.w,
