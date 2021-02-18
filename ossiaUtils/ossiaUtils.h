@@ -10,24 +10,27 @@
 namespace ossiaUtils
 {
 
-//--------------------------------------------------------------
-class players
+template<class T>
+class utilsBase
 {
 public:
-    void setup(string directory = ""); // default to the "data" directory inside "bin"
-
-#ifdef OSCQUERY
-    void setAtributes(ofxOscQueryServer& device);
-#endif
-
     void update();
     void draw();
     void resize();
     void close();
-    ofParameterGroup parameters;
 
-private:
-    vector<ossiaPlayer*> vids;
+    ofParameterGroup parameters;
+    vector<T> vids;
+};
+
+//--------------------------------------------------------------
+class players : public utilsBase<ossiaPlayer*>
+{
+public:
+    void setup(string directory = ""); // default to the "data" directory inside "bin
+#ifdef OSCQUERY
+    void setAtributes(ofxOscQueryServer& device);
+#endif
 };
 
 //--------------------------------------------------------------
